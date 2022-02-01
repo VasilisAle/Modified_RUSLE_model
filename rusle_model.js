@@ -1,5 +1,5 @@
 /*                                              
-======RUSLE Model for the case of Crete==========
+======RUSLE Model with modified dataset with case study in Crete==========
 */          
 
 //Bounding Box of area in Crete, Greece
@@ -53,7 +53,7 @@ function calc(startDate,endDate,box){
                   .map(precip)//convert to mm
                   .map(function(image){return image.clip(box.geometry())}); //Clips data based on 'aoi';
                   
-    //R--index -- Apply precip function, based on de Santos Loureiro
+    //R--index -- Apply precip function, based on de Santos Loureiro study
     //Bigger than 10, the pixel values of percipitation
     var bigger10 = function(image)
     {   var mymask = image.gte(10); 
@@ -69,7 +69,7 @@ function calc(startDate,endDate,box){
       return newa
     }
     
-    //get ERA5 bigger than 10, get counter with ERA5 bigger than 10
+    //Get ERA5 bigger than 10, get counter with ERA5 bigger than 10
     var ERA_bigger = ERA5_daily.map(bigger10);
     var ERA_counter = ERA_bigger.map(countD10);
     //sum them!
@@ -97,7 +97,7 @@ function calc(startDate,endDate,box){
         return mm;
     }));
 
-    //Compute the Difference Per Month
+    // Compute the Difference Per Month
     var R10 = bymonthR10.map(function(m){return m.multiply(ee.Number(7.5))});
     var D10 = bymonthD10.map(function(m){return m.multiply(ee.Number(150))});
 
@@ -106,7 +106,7 @@ function calc(startDate,endDate,box){
     var seq = ee.List.sequence(0,lisR10.size().subtract(1));
     var diff = ee.ImageCollection(seq.map(function(i){return ee.Image(lisR10.get(i)).subtract(lisD10.get(i))}));
     
-    //Multiply the Difference Per Month with the number of total erosive events which is equal to the D10 number
+    // Multiply the Difference Per Month with the number of total erosive events which is equal to the D10 number
     var listbymonthD10 = bymonthD10.toList(bymonthD10.size());
     var listdiff= diff.toList(diff.size());
     var multipl = ee.ImageCollection(seq.map(function(i){return ee.Image(listdiff.get(i)).multiply(ee.Image(listbymonthD10.get(i)))}));
@@ -114,7 +114,7 @@ function calc(startDate,endDate,box){
   return multipl;
 }
 
-//Annual R-factor for each of 30-years period, after checking that is positive
+// Annual R-factor for each of 30-years period, after checking that is positive
 var R1989 = calc('1989-01-01','1990-01-01',box).map(positive).sum();
 var R1990 = calc('1990-01-01','1991-01-01',box).map(positive).sum();
 var R1991 = calc('1991-01-01','1992-01-01',box).map(positive).sum();
@@ -154,18 +154,18 @@ var all = R1989.add(R1990).add(R1991).add(R1992).add(R1993).add(R1994).add(R1995
 
 var meanall = all.divide(30).rename('mean_R');
 
-//LS-factor as an "Asset"
+// LS-factor as an "Asset"
 var lsfactor = ee.Image("users/alexandridisvasileios/ls_fac_cre_new").clip(box.geometry());
-//K-factor as an "Asset"
+// K-factor as an "Asset"
 var kfactor =  ee.Image("users/alexandridisvasileios/kfactor_crete").clip(box.geometry());
-//P-factor as an "Asset"
+// P-factor as an "Asset"
 var pfactor =  ee.Image("users/alexandridisvasileios/P_factor_crete_wgs84_fill").clip(box.geometry());
 
-//Final A-factor is computed based on the 5 factors
+// Final A-factor is computed based on the 5 factors
 var Afactor= meanall.multiply(cfactor_ndvi).multiply(lsfactor).multiply(kfactor).multiply(pfactor);
 
 //----- Display Things&Layers----//
-//Visualization
+// Visualization
 var viscfactor = {min:-1,max:1,palette:['green','white','black']}
 var visrfactor = {min:0,max:2000,palette:['yellow','orange','purple']}
 var visafactor = {min:0,max:500,palette:['yellow','orange','purple']}
@@ -174,7 +174,7 @@ Map.centerObject(box,8.3);
 Map.addLayer(box.draw({color: '999999', strokeWidth: 2}),{},'Study Area');
 Map.addLayer(Afactor,visafactor,'Afactor');
 
-//Compute & Visualize some statistics values: min, max, mean
+// Compute & Visualize some statistics values: min, max, mean
 var min_value = Afactor.reduceRegion({
   reducer: ee.Reducer.min(),
   geometry: box.geometry(),
