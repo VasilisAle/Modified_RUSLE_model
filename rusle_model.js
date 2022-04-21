@@ -105,13 +105,8 @@ function calc(startDate,endDate,box){
     var lisD10  = D10.toList(D10.size());
     var seq = ee.List.sequence(0,lisR10.size().subtract(1));
     var diff = ee.ImageCollection(seq.map(function(i){return ee.Image(lisR10.get(i)).subtract(lisD10.get(i))}));
-    
-    // Multiply the Difference Per Month with the number of total erosive events which is equal to the D10 number
-    var listbymonthD10 = bymonthD10.toList(bymonthD10.size());
-    var listdiff= diff.toList(diff.size());
-    var multipl = ee.ImageCollection(seq.map(function(i){return ee.Image(listdiff.get(i)).multiply(ee.Image(listbymonthD10.get(i)))}));
-    
-  return multipl;
+      
+  return diff;
 }
 
 // Annual R-factor for each of 30-years period, after checking that is positive
